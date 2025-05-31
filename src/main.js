@@ -34,7 +34,6 @@ let config = {
     scene: [Load, Platformer]
 }
 
-var cursors;
 const SCALE = 2.0;
 var my = {sprite: {}, text: {}, vfx: {}};
 

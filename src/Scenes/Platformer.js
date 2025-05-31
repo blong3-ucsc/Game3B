@@ -11,7 +11,7 @@ class Platformer extends Phaser.Scene {
         this.JUMP_VELOCITY = -600;
         this.PARTICLE_VELOCITY = 50; // Used for water bubbles
         this.SCALE = 2.0;
-        this.TILE_SIZE = 18; // Define tile size for easy use
+        this.TILE_SIZE = 16; // Define tile size for easy use
     }
 
     create() {
@@ -20,15 +20,13 @@ class Platformer extends Phaser.Scene {
         this.map = this.add.tilemap("platformer-level-1", this.TILE_SIZE, this.TILE_SIZE, 45, 25);
 
         // Add a tileset to the map
-        this.tileset = this.map.addTilesetImage("kenny_tilemap_packed", "tilemap_tiles");
+        this.tileset = this.map.addTilesetImage("monochrome_tilemap", "tilemap_tiles");
 
         // Create a layer
+        this.backgroundLayer = this.map.createLayer("Background", this.tileset, 0, 0);
         this.groundLayer = this.map.createLayer("Ground-n-Platforms", this.tileset, 0, 0);
 
-        // Make it collidable
-        this.groundLayer.setCollisionByProperty({
-            collides: true
-        });
+        this.groundLayer.setCollisionByExclusion([-1]);
 
         // Create coins from Objects layer in tilemap
         this.coins = this.map.createFromObjects("Objects", {
@@ -49,10 +47,9 @@ class Platformer extends Phaser.Scene {
             return false; 
         });
 
-
-
         // set up player avatar
         my.sprite.player = this.physics.add.sprite(10, 10, "platformer_characters", "tile_0000.png");
+        my.sprite.player.setDragX(this.DRAG);
         my.sprite.player.setCollideWorldBounds(true);
 
         // Enable collision handling
@@ -71,7 +68,6 @@ class Platformer extends Phaser.Scene {
         });
         this.coinCollectParticles.setDepth(5);
 
-
         // Coin collision handler
         this.physics.add.overlap(my.sprite.player, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); 
@@ -84,17 +80,24 @@ class Platformer extends Phaser.Scene {
             }
         });
 
-        // set up Phaser-provided cursor key input
-        cursors = this.input.keyboard.createCursorKeys();
-        this.rKey = this.input.keyboard.addKey('R');
-
-        this.input.keyboard.on('keydown-D', () => {
-            this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
-            this.physics.world.debugGraphic.clear()
-        }, this);
+        // set up input
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.keys = this.input.keyboard.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.UP,
+            down: Phaser.Input.Keyboard.KeyCodes.DOWN,
+            left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+            right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+            space: Phaser.Input.Keyboard.KeyCodes.SPACE,
+            shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
+            w: Phaser.Input.Keyboard.KeyCodes.W,
+            s: Phaser.Input.Keyboard.KeyCodes.S,
+            a: Phaser.Input.Keyboard.KeyCodes.A,
+            d: Phaser.Input.Keyboard.KeyCodes.D,
+            r: Phaser.Input.Keyboard.KeyCodes.R,
+            f: Phaser.Input.Keyboard.KeyCodes.F,
+        });
 
         // TODO: Add movement vfx here
-        
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.startFollow(my.sprite.player, true, 0.25, 0.25); 
         this.cameras.main.setDeadzone(50, 50);
@@ -102,33 +105,45 @@ class Platformer extends Phaser.Scene {
     }
 
     update() {
-        if(cursors.left.isDown) {
-            my.sprite.player.setAccelerationX(-this.ACCELERATION);
-            my.sprite.player.resetFlip();
-            my.sprite.player.anims.play('walk', true);
-            // TODO: add particle following code here
+        let inputDirection = 0;
+        if (this.keys.left.isDown || this.keys.a.isDown) {
+            inputDirection -= 1;
+        }
+        if (this.keys.right.isDown || this.keys.d.isDown) {
+            inputDirection += 1;
+        }
+        let inputJump = Phaser.Input.Keyboard.JustDown(this.keys.up) || Phaser.Input.Keyboard.JustDown(this.keys.w);
+        let inputReset = Phaser.Input.Keyboard.JustDown(this.keys.r);
+        let inputDebug = Phaser.Input.Keyboard.JustDown(this.keys.f);
 
-        } else if(cursors.right.isDown) {
-            my.sprite.player.setAccelerationX(this.ACCELERATION);
-            my.sprite.player.setFlip(true, false);
-            my.sprite.player.anims.play('walk', true);
-            // TODO: add particle following code here
-
-        } else {
-            my.sprite.player.setAccelerationX(0);
-            my.sprite.player.setDragX(this.DRAG);
+        my.sprite.player.setAccelerationX(this.ACCELERATION*inputDirection);
+        if (inputDirection === 0) {
+            //my.sprite.player.setDragX(this.DRAG);
             my.sprite.player.anims.play('idle');
             // TODO: have the vfx stop playing
+        } else {
+            if (inputDirection < 0) {
+                my.sprite.player.resetFlip();
+            } else {
+                my.sprite.player.setFlip(true, false);
+            }
+            my.sprite.player.anims.play('walk', true);
+            // TODO: add particle following code here
         }
 
-        if(!my.sprite.player.body.blocked.down) {
+        if (!my.sprite.player.body.blocked.down) {
             my.sprite.player.anims.play('jump');
         }
-        if(my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
+        if (my.sprite.player.body.blocked.down && inputJump) {
             my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);
         }
 
-        if(Phaser.Input.Keyboard.JustDown(this.rKey)) {
+        if (inputDebug) {
+            this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
+            this.physics.world.debugGraphic.clear()
+        }
+
+        if (inputReset) {
             this.scene.restart();
         }
     }
