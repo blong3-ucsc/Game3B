@@ -49,47 +49,10 @@ class Platformer extends Phaser.Scene {
             return false; 
         });
 
-        ////////////////////
-        // TODO: put water bubble particle effect here
-        // It's OK to have it start running
-        ////////////////////
-        if (this.waterTiles.length > 0) {
-            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-            this.waterTiles.forEach(tile => {
-                minX = Math.min(minX, tile.pixelX);
-                minY = Math.min(minY, tile.pixelY);
-                maxX = Math.max(maxX, tile.pixelX);
-                maxY = Math.max(maxY, tile.pixelY);
-            });
-
-            const waterZoneWidth = (maxX - minX) + this.TILE_SIZE;
-            const waterZoneHeight = (maxY - minY) + this.TILE_SIZE;
-
-            // Create a single emitter for all water bubbles
-            this.waterBubbleEmitter = this.add.particles(0, 0, 'kenny-particles', { // Assuming 'kenny-particles' is the key
-                frame: 'circle_01.png',
-                // Emit from a random point within the calculated zone
-                emitZone: { 
-                    source: new Phaser.Geom.Rectangle(minX, minY, waterZoneWidth, waterZoneHeight), 
-                    type: 'random', 
-                    quantity: 1 // Emit 1 particle from a random spot in the zone at each frequency interval
-                },
-                speedY: { min: -this.PARTICLE_VELOCITY, max: -this.PARTICLE_VELOCITY - 30 },
-                speedX: { min: -10, max: 10 },
-                scale: { start: 0.15, end: 0.01, ease: 'Expo.easeIn' },
-                alpha: { start: 0.7, end: 0, ease: 'Expo.easeIn' },
-                lifespan: { min: 1000, max: 2000 },
-                quantity: 1, // Number of particles emitted per emission event
-                frequency: 150, // Emit particles more often from the single source, adjust as needed
-                blendMode: 'ADD'
-            });
-            this.waterBubbleEmitter.setDepth(0); // Ensure bubbles are behind player, etc.
-        }
 
 
         // set up player avatar
-        my.sprite.player = this.physics.add.sprite(30, 345, "platformer_characters", "tile_0000.png");
+        my.sprite.player = this.physics.add.sprite(10, 10, "platformer_characters", "tile_0000.png");
         my.sprite.player.setCollideWorldBounds(true);
 
         // Enable collision handling
