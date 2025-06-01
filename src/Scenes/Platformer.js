@@ -32,7 +32,7 @@ class Platformer extends Phaser.Scene {
         this.coins = this.map.createFromObjects("Objects", {
             name: "coin",
             key: "tilemap_sheet",
-            frame: 151
+            frame: 2,
         });
 
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
@@ -41,7 +41,7 @@ class Platformer extends Phaser.Scene {
         // Find water tiles
         this.waterTiles = [];
         this.groundLayer.filterTiles(tile => {
-            if (tile.properties.water == true) {
+            if (tile.properties.water) {
                 this.waterTiles.push(tile);
             }
             return false; 
@@ -49,6 +49,7 @@ class Platformer extends Phaser.Scene {
 
         // set up player avatar
         my.sprite.player = this.physics.add.sprite(10, 10, "platformer_characters", "tile_0000.png");
+        my.sprite.player.setDepth(1);
         my.sprite.player.setDragX(this.DRAG);
         my.sprite.player.setCollideWorldBounds(true);
 
@@ -66,7 +67,7 @@ class Platformer extends Phaser.Scene {
             scale: { start: 0.07, end: 0, ease: 'Expo.easeIn' },
             emitting: false 
         });
-        this.coinCollectParticles.setDepth(5);
+        this.coinCollectParticles.setDepth(2);
 
         // Coin collision handler
         this.physics.add.overlap(my.sprite.player, this.coinGroup, (obj1, obj2) => {
@@ -97,11 +98,30 @@ class Platformer extends Phaser.Scene {
             f: Phaser.Input.Keyboard.KeyCodes.F,
         });
 
-        // TODO: Add movement vfx here
+        // camera code
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.startFollow(my.sprite.player, true, 0.25, 0.25); 
         this.cameras.main.setDeadzone(50, 50);
         this.cameras.main.setZoom(this.SCALE);
+
+        // movement vfx
+        my.vfx.walking = this.add.particles(0, 0, "kenny-particles", {
+            frame: ["smoke_03.png", "smoke_09.png"],
+            scale: {start: 0.04, end: 0.02},
+            lifespan: 200,
+            alpha: {start: 1, end: 0.1},
+        });
+        my.vfx.walking.startFollow(my.sprite.player, my.sprite.player.displayWidth/2-10, my.sprite.player.displayHeight/2-10, false);
+        my.vfx.walking.stop();
+
+        my.vfx.jumping = this.add.particles(0, 0, "kenny-particles", {
+            frame: ["smoke_03.png", "smoke_09.png"],
+            scale: {start: 0.02, end: 0.005},
+            lifespan: 150,
+            alpha: {start: 1, end: 0.1},
+        });
+        my.vfx.jumping.startFollow(my.sprite.player, my.sprite.player.displayWidth/2-10, my.sprite.player.displayHeight/2-10, false);
+        my.vfx.jumping.stop();
     }
 
     update() {
@@ -118,9 +138,7 @@ class Platformer extends Phaser.Scene {
 
         my.sprite.player.setAccelerationX(this.ACCELERATION*inputDirection);
         if (inputDirection === 0) {
-            //my.sprite.player.setDragX(this.DRAG);
             my.sprite.player.anims.play('idle');
-            // TODO: have the vfx stop playing
         } else {
             if (inputDirection < 0) {
                 my.sprite.player.resetFlip();
@@ -128,7 +146,19 @@ class Platformer extends Phaser.Scene {
                 my.sprite.player.setFlip(true, false);
             }
             my.sprite.player.anims.play('walk', true);
-            // TODO: add particle following code here
+        }
+
+        if (my.sprite.player.body.blocked.down && inputDirection) {
+            my.vfx.walking.start();
+        } else {
+            my.vfx.walking.stop();
+        }
+
+
+        if (my.sprite.player.body.velocity.y < -500) {
+            my.vfx.jumping.start();
+        } else if (my.sprite.player.body.velocity.y >  -100) {
+            my.vfx.jumping.stop();
         }
 
         if (!my.sprite.player.body.blocked.down) {
