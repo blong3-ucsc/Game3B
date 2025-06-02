@@ -161,6 +161,13 @@ class Platformer extends Phaser.Scene {
         this.winText.setScrollFactor(0);
         this.winText.setOrigin(0.5, 0,5);
         this.winText.visible = false;
+
+        // lose text
+        this.loseText = this.add.text(1600/4 + 800/2, 900/4 + 450/2, "press r to restart.", { fontFamily: '"Lucida Console", "Courier New", monospace' });
+        this.loseText.setScrollFactor(0);
+        this.loseText.setOrigin(0.5, 0,5);
+        this.loseText.visible = false;
+
         this.toggleDebug();
     }
 
@@ -172,7 +179,7 @@ class Platformer extends Phaser.Scene {
         if (this.keys.right.isDown || this.keys.d.isDown) {
             inputDirection += 1;
         }
-        let inputJump = Phaser.Input.Keyboard.JustDown(this.keys.up) || Phaser.Input.Keyboard.JustDown(this.keys.w);
+        let inputJump = Phaser.Input.Keyboard.JustDown(this.keys.up) || Phaser.Input.Keyboard.JustDown(this.keys.w) || Phaser.Input.Keyboard.JustDown(this.keys.space);
         let inputReset = Phaser.Input.Keyboard.JustDown(this.keys.r);
         let inputDebug = Phaser.Input.Keyboard.JustDown(this.keys.f);
 
@@ -213,6 +220,11 @@ class Platformer extends Phaser.Scene {
 
         if (inputReset) {
             this.scene.restart();
+        }
+
+        if (my.sprite.player.y > 450) {
+            my.sprite.player.visible = false;
+            this.loseText.visible = true;
         }
 
         if (my.sprite.player.visible === false) {
