@@ -53,7 +53,7 @@ class Platformer extends Phaser.Scene {
         my.sprite.player.setDragX(this.DRAG);
         my.sprite.player.setCollideWorldBounds(true);
 
-        // Enable collision handling
+        // enable collision handling
         this.physics.add.collider(my.sprite.player, this.groundLayer);
 
         // TODO: create coin collect particle effect here
@@ -69,7 +69,12 @@ class Platformer extends Phaser.Scene {
         });
         this.coinCollectParticles.setDepth(2);
 
-        // Coin collision handler
+        // coin text
+        this.coinsCollected = 0;
+        this.coinText = this.add.text(1600/4, 900/4, String(this.coinsCollected), { fontFamily: '"Lucida Console", "Courier New", monospace' });
+        this.coinText.setScrollFactor(0);
+
+        // coin collision handler
         this.physics.add.overlap(my.sprite.player, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); 
             ////////////////////
@@ -79,6 +84,8 @@ class Platformer extends Phaser.Scene {
                 this.coinCollectParticles.setPosition(obj2.x, obj2.y);
                 this.coinCollectParticles.explode(10); // Reduced quantity slightly
             }
+            this.coinsCollected += 1;
+            this.coinText.text = String(this.coinsCollected);
         });
 
         // set up input
@@ -122,6 +129,8 @@ class Platformer extends Phaser.Scene {
         });
         my.vfx.jumping.startFollow(my.sprite.player, my.sprite.player.displayWidth/2-10, my.sprite.player.displayHeight/2-10, false);
         my.vfx.jumping.stop();
+
+        this.toggleDebug();
     }
 
     update() {
@@ -169,12 +178,16 @@ class Platformer extends Phaser.Scene {
         }
 
         if (inputDebug) {
-            this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
-            this.physics.world.debugGraphic.clear()
+            this.toggleDebug();
         }
 
         if (inputReset) {
             this.scene.restart();
         }
+    }
+
+    toggleDebug() {
+        this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
+        this.physics.world.debugGraphic.clear()
     }
 }
