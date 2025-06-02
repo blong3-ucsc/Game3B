@@ -89,6 +89,7 @@ class Platformer extends Phaser.Scene {
             }
             this.coinsCollected += 1;
             this.coinText.text = String(this.coinsCollected);
+            this.sound.play("sfx_pickup_a", { volume: 0.5 });
         });
 
         // diamond particles
@@ -112,6 +113,7 @@ class Platformer extends Phaser.Scene {
             }
             obj1.visible = false;
             this.winText.visible = true;
+            this.sound.play("sfx_pickup_b", { volume: 0.5 });
         });
 
         // set up input
@@ -212,6 +214,7 @@ class Platformer extends Phaser.Scene {
         }
         if (my.sprite.player.body.blocked.down && inputJump) {
             my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);
+            this.sound.play("sfx_jump", { volume: 0.1 });
         }
 
         if (inputDebug) {
