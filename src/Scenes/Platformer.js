@@ -34,9 +34,16 @@ class Platformer extends Phaser.Scene {
             key: "tilemap_sheet",
             frame: 2,
         });
-
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
         this.coinGroup = this.add.group(this.coins);
+
+        this.diamonds = this.map.createFromObjects("Objects", {
+            name: "diamond",
+            key: "tilemap_sheet",
+            frame: 82,
+        });
+        this.physics.world.enable(this.diamonds, Phaser.Physics.Arcade.STATIC_BODY);
+        this.diamondGroup = this.add.group(this.diamonds);
 
         // Find water tiles
         this.waterTiles = [];
@@ -56,16 +63,15 @@ class Platformer extends Phaser.Scene {
         // enable collision handling
         this.physics.add.collider(my.sprite.player, this.groundLayer);
 
-        // TODO: create coin collect particle effect here
-        // Important: make sure it's not running
+        // coin particles
         this.coinCollectParticles = this.add.particles(0, 0, 'kenny-particles', {
-            frame: 'star_03.png', 
+            frame: 'star_01.png', 
             lifespan: 600,
             speed: { min: 100, max: 200 }, // Slightly reduced speed/spread
             angle: { min: 220, max: 320 },
             gravityY: 250,
             scale: { start: 0.07, end: 0, ease: 'Expo.easeIn' },
-            emitting: false 
+            emitting: false,
         });
         this.coinCollectParticles.setDepth(2);
 
@@ -77,15 +83,34 @@ class Platformer extends Phaser.Scene {
         // coin collision handler
         this.physics.add.overlap(my.sprite.player, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); 
-            ////////////////////
-            // TODO: start the coin collect particle effect here
-            ////////////////////
             if (this.coinCollectParticles) {
                 this.coinCollectParticles.setPosition(obj2.x, obj2.y);
                 this.coinCollectParticles.explode(10); // Reduced quantity slightly
             }
             this.coinsCollected += 1;
             this.coinText.text = String(this.coinsCollected);
+        });
+
+        // diamond particles
+        this.diamondCollectParticles = this.add.particles(0, 0, 'kenny-particles', {
+            frame: 'star_08.png', 
+            lifespan: 600,
+            speed: { min: 100, max: 200 }, // Slightly reduced speed/spread
+            angle: { min: 220, max: 320 },
+            gravityY: 250,
+            scale: { start: 0.07, end: 0, ease: 'Expo.easeIn' },
+            emitting: false,
+        });
+        this.diamondCollectParticles.setDepth(2);
+
+        // diamond collision handler
+        this.physics.add.overlap(my.sprite.player, this.diamondGroup, (obj1, obj2) => {
+            obj2.destroy(); 
+            if (this.diamondCollectParticles) {
+                this.diamondCollectParticles.setPosition(obj2.x, obj2.y);
+                this.diamondCollectParticles.explode(10); // Reduced quantity slightly
+            }
+            obj1.visible = false;
         });
 
         // set up input
@@ -163,7 +188,6 @@ class Platformer extends Phaser.Scene {
             my.vfx.walking.stop();
         }
 
-
         if (my.sprite.player.body.velocity.y < -500) {
             my.vfx.jumping.start();
         } else if (my.sprite.player.body.velocity.y >  -100) {
@@ -183,6 +207,15 @@ class Platformer extends Phaser.Scene {
 
         if (inputReset) {
             this.scene.restart();
+        }
+
+        if (my.sprite.player.visible === false) {
+            my.sprite.player.setVelocityX(0);
+            my.sprite.player.setVelocityY(0);
+            my.sprite.player.setAccelerationX(0);
+            my.sprite.player.setAccelerationY(0);
+            my.vfx.walking.stop();
+            my.vfx.jumping.stop();
         }
     }
 

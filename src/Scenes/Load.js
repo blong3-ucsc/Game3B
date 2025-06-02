@@ -17,6 +17,7 @@ class Load extends Phaser.Scene {
         this.load.spritesheet("tilemap_sheet", "monochrome_tilemap.png", {
             frameWidth: 16,
             frameHeight: 16,
+            spacing: 1,
         });
 
         // Oooh, fancy. A multi atlas is a texture atlas which has the textures spread
