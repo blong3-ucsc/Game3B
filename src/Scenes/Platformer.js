@@ -111,6 +111,7 @@ class Platformer extends Phaser.Scene {
                 this.diamondCollectParticles.explode(10); // Reduced quantity slightly
             }
             obj1.visible = false;
+            this.winText.visible = true;
         });
 
         // set up input
@@ -155,6 +156,11 @@ class Platformer extends Phaser.Scene {
         my.vfx.jumping.startFollow(my.sprite.player, my.sprite.player.displayWidth/2-10, my.sprite.player.displayHeight/2-10, false);
         my.vfx.jumping.stop();
 
+        // win text
+        this.winText = this.add.text(1600/4 + 800/2, 900/4 + 450/2, "you win!", { fontFamily: '"Lucida Console", "Courier New", monospace' });
+        this.winText.setScrollFactor(0);
+        this.winText.setOrigin(0.5, 0,5);
+        this.winText.visible = false;
         this.toggleDebug();
     }
 
